@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"fl911.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="如何压测 Linux 上安装 sysbench 123curl -s https:&#x2F;&#x2F;packagecloud.io&#x2F;install&#x2F;repositories&#x2F;akopytov&#x2F;sysbench&#x2F;script.rpm.sh | sudo bashsudo yum -y install sysbenchsysbench --version">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库压测工具 sysbench">
+<meta property="og:url" content="https://fl911.github.io/2021/09/17/mysql-sysbench/index.html">
+<meta property="og:site_name" content="Dragon">
+<meta property="og:description" content="如何压测 Linux 上安装 sysbench 123curl -s https:&#x2F;&#x2F;packagecloud.io&#x2F;install&#x2F;repositories&#x2F;akopytov&#x2F;sysbench&#x2F;script.rpm.sh | sudo bashsudo yum -y install sysbenchsysbench --version">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-09-17T06:25:56.000Z">
+<meta property="article:modified_time" content="2023-06-16T09:14:25.067Z">
+<meta property="article:author" content="Dragon">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://fl911.github.io/2021/09/17/mysql-sysbench/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据库压测工具 sysbench | Dragon</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <script type="text/javascript" src="/js/click/clicklove.js"></script>
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Dragon</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">业精于勤荒于嬉</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/fl911" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://fl911.github.io/2021/09/17/mysql-sysbench/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head-img.jpeg">
+      <meta itemprop="name" content="Dragon">
+      <meta itemprop="description" content="java">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Dragon">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库压测工具 sysbench
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-17 14:25:56" itemprop="dateCreated datePublished" datetime="2021-09-17T14:25:56+08:00">2021-09-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-16 17:14:25" itemprop="dateModified" datetime="2023-06-16T17:14:25+08:00">2023-06-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/mysql/" itemprop="url" rel="index"><span itemprop="name">mysql</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="如何压测"><a href="#如何压测" class="headerlink" title="如何压测"></a>如何压测</h4><ul>
+<li><p>Linux 上安装 sysbench</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash</span><br><span class="line">sudo yum -y install sysbench</span><br><span class="line">sysbench --version</span><br></pre></td></tr></table></figure></li>
+</ul>
+<span id="more"></span>
+
+<ul>
+<li><p>数据库压测的测试用例</p>
+<p>接着我们需要在自己的数据库里创建好一个测试库，我们可以取个名字叫做test_db，同时创建好对应的测试账号，可以叫做 test_user，密码也是test_user，让这个用户有权限可以访问test_db。 然后我们将要基于sysbench构建20个测试表，每个表里有100万条数据，接着使用10个并发线程去对这个数据库发起访问， 连续访问5分钟，也就是300秒，然后对其进行压力测试。</p>
+</li>
+<li><p>基于sysbench构造测试表和测试数据</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sysbench --db-driver=mysql --time=300 --threads=10 --report-interval=1 --mysql-host=127.0.0.1 --mysqlport=3306 --mysql-user=test_user --mysql-password=test_user --mysql-db=test_db --tables=20 --</span><br><span class="line">table_size=1000000 oltp_read_write --db-ps-mode=disable prepare</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>–db-driver=mysql</strong>：这个很简单，就是说他基于mysql的驱动去连接mysql数据库，你要是oracle，或者sqlserver，那 自然就是其他的数据库的驱动了</li>
+<li><strong>–time=300</strong>：这个就是说连续访问300秒</li>
+<li><strong>–threads=10</strong>：这个就是说用10个线程模拟并发访问</li>
+<li><strong>–report-interval=1</strong>：这个就是说每隔1秒输出一下压测情况</li>
+<li><strong>–mysql-host=127.0.0.1 –mysql-port=3306 –mysql-user=test_user –mysql-password=test_user</strong>：这一大串，就 是说连接到哪台机器的哪个端口上的MySQL库，他的用户名和密码是什么</li>
+<li><strong>–mysql-db=test_db –tables=20 –table_size=1000000</strong>：这一串的意思，就是说在test_db这个库里，构造20个测试 表，每个测试表里构造100万条测试数据，测试表的名字会是类似于sbtest1，sbtest2这个样子的</li>
+<li><strong>oltp_read_write</strong>：这个就是说，执行oltp数据库的读写测试</li>
+<li><strong>–db-ps-mode=disable</strong>：这个就是禁止ps模式</li>
+<li><strong>prepare</strong>：意思是参照这个命令的设置去构造出来我们需要的数据库里的数据，他会自动创建20个测试表，每个表 里创建100万条测试数据</li>
+</ul>
+</li>
+<li><p>对数据库进行360度的全方位测试</p>
+<ul>
+<li><p>测试数据库的综合读写TPS，使用的是 <strong>oltp_read_write</strong> 模式（大家看命令中最后不是prepare，是run了，就是运行压测）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sysbench --db-driver=mysql --time=300 --threads=10 --report-interval=1 --mysql-host=127.0.0.1 --mysqlport=3306 --mysql-user=test_user --mysql-password=test_user --mysql-db=test_db --tables=20 --</span><br><span class="line">table_size=1000000 oltp_read_write --db-ps-mode=disable run</span><br></pre></td></tr></table></figure></li>
+<li><p>测试数据库的只读性能，使用的是 <strong>oltp_read_only</strong> 模式（大家看命令中的 oltp_read_write 已经变为 oltp_read_only 了）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sysbench --db-driver=mysql --time=300 --threads=10 --report-interval=1 --mysql-host=127.0.0.1 --mysqlport=3306 --mysql-user=test_user --mysql-password=test_user --mysql-db=test_db --tables=20 --</span><br><span class="line">table_size=1000000 oltp_read_only --db-ps-mode=disable run</span><br></pre></td></tr></table></figure></li>
+<li><p>测试数据库的删除性能，使用的是 <strong>oltp_delete</strong> 模式</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sysbench --db-driver=mysql --time=300 --threads=10 --report-interval=1 --mysql-host=127.0.0.1 --mysqlport=3306 --mysql-user=test_user --mysql-password=test_user --mysql-db=test_db --tables=20 --</span><br><span class="line">table_size=1000000 oltp_delete --db-ps-mode=disable run</span><br></pre></td></tr></table></figure></li>
+<li><p>测试数据库的更新索引字段的性能，使用的是 <strong>oltp_update_index</strong> 模式</p>
+</li>
+<li><p>测试数据库的更新非索引字段的性能，使用的是 <strong>oltp_update_non_index</strong> 模式</p>
+</li>
+<li><p>测试数据库的插入性能，使用的是 <strong>oltp_insert</strong> 模式</p>
+</li>
+<li><p>测试数据库的写入性能，使用的是 <strong>oltp_write_only</strong> 模式</p>
+</li>
+<li><p>最后完成压测之后，可以执行下面的 <strong>cleanup</strong> 命令，清理数据</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sysbench --db-driver=mysql --time=300 --threads=10 --report-interval=1 --mysql-host=127.0.0.1 --mysqlport=3306 --mysql-user=test_user --mysql-password=test_user --mysql-db=test_db --tables=20 --</span><br><span class="line">table_size=1000000 oltp_read_write --db-ps-mode=disable cleanup</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>压测结果分析</p>
+<p>按照我们上面的命令，我们是让他每隔1秒都会输出一次压测报告的，此时他每隔一秒会输出类似下面的一段东西：</p>
+<p>[ 22s ] thds: 10 tps: 380.99 qps: 7312.66 (r/w/o: 5132.99/1155.86/1321.35) lat (ms, 95%): 21.33 err/s: 0.00 reconn/s: 0.00</p>
+<ul>
+<li>thds: 10，这个意思就是有10个线程在压测</li>
+<li>tps: 380.99，这个意思就是每秒执行了380.99个事务</li>
+<li>qps: 7610.20，这个意思就是每秒可以执行7610.20个请求</li>
+<li>(r/w/o: 5132.99/1155.86/1321.35)，这个意思就是说，在每秒7610.20个请求中，有5132.99个请求是读请求，1155.86个请 求是写请求，1321.35个请求是其他的请求，就是对QPS进行了拆解</li>
+<li>lat (ms, 95%): 21.33，这个意思就是说，95%的请求的延迟都在21.33毫秒以下</li>
+<li>err/s: 0.00 reconn/s: 0.00，这两个的意思就是说，每秒有0个请求是失败的，发生了0次网络重连</li>
+</ul>
+</li>
+</ul>
+<p>另外在完成压测之后，最后会显示一个总的压测报告，我把解释写在下面了：</p>
+<p>​    SQL statistics:</p>
+<p>​         queries performed:</p>
+<p>​            read: 1480084 // 这就是说在300s的压测期间执行了148万多次的读请求</p>
+<p>​            write: 298457 // 这是说在压测期间执行了29万多次的写请求</p>
+<p>​            other: 325436 // 这是说在压测期间执行了30万多次的其他请求</p>
+<p>​            total: 2103977 // 这是说一共执行了210万多次的请求</p>
+<p>​            transactions: 105180( 350.6 per sec. ) // 这是说一共执行了10万多个事务，每秒执行350多个事务</p>
+<p>​            queries: 2103977 ( 7013.26 per sec. )  // 这是说一共执行了210万多次的请求，每秒执行7000+请求</p>
+<p>​            ignored errors: 0 (0.00 per sec.)</p>
+<p>​            reconnects: 0 (0.00 per sec.)</p>
+<p>// 下面就是说，一共执行了300s的压测，执行了10万+的事务</p>
+<p>​    General staticstics:</p>
+<p>​        total time: 300.0052s</p>
+<p>​        total number of events: 105180</p>
+<p>​    Latency (ms):</p>
+<p>​        min: 4.32 // 请求中延迟最小的是4.32ms</p>
+<p>​        avg: 13.42 // 所有请求平均延迟是13.42ms</p>
+<p>​        max: 45.56 // 延迟最大的请求是45.56ms</p>
+<p>​        95th percentile: 21.33 // 95%的请求延迟都在21.33ms以内</p>
+<h4 id="压测时如何观察机器的CPU负载情况？"><a href="#压测时如何观察机器的CPU负载情况？" class="headerlink" title="压测时如何观察机器的CPU负载情况？"></a>压测时如何观察机器的CPU负载情况？</h4><p>使用 top 命令，然后观察如下一行信息</p>
+<p>top - 15:52:00 up 42:35, 1 user, load average: 0.15, 0.05, 0.01</p>
+<p>最重要的是load average: 0.15, 0.05, 0.01这行信息，他说的是CPU在1分钟、5分钟、15分钟内的负载情况。</p>
+<p>CPU负载是什么意思，假设我们是一个4核的CPU，此时如果你的CPU负载是0.15，这就说 明，4核CPU中连一个核都没用满，4核CPU基本都很空闲，没啥人在用。</p>
+<p>如果你的CPU负载是1，那说明4核CPU中有一个核已经被使用的比较繁忙了，另外3个核还是比较空闲一些。要是CPU负载是 1.5，说明有一个核被使用繁忙，另外一个核也在使用，但是没那么繁忙，还有2个核可能还是空闲的。</p>
+<h4 id="压测时如何观察机器的内存负载情况？"><a href="#压测时如何观察机器的内存负载情况？" class="headerlink" title="压测时如何观察机器的内存负载情况？"></a>压测时如何观察机器的内存负载情况？</h4><p>在你执行top命令之后，中间我们跳过几行内容，可以看到如下一行内容：</p>
+<p>Mem: 33554432k total, 20971520k used, 12268339 free, 307200k buffers</p>
+<h4 id="压测时如何观察机器的磁盘IO情况？"><a href="#压测时如何观察机器的磁盘IO情况？" class="headerlink" title="压测时如何观察机器的磁盘IO情况？"></a>压测时如何观察机器的磁盘IO情况？</h4><p>使用dstat -d命令，会看到如下的东西：</p>
+<p>-dsk/total -</p>
+<p>read writ</p>
+<p>103k 211k</p>
+<p>0 11k</p>
+<h4 id="压测时观察网卡的流量情况"><a href="#压测时观察网卡的流量情况" class="headerlink" title="压测时观察网卡的流量情况"></a>压测时观察网卡的流量情况</h4><p>使用dstat -n命令，可以看到如下的信息：</p>
+<p>-net/total</p>
+<p>recv send</p>
+<p>16k 17k</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/17/mysql/" rel="prev" title="MySQL">
+      <i class="fa fa-chevron-left"></i> MySQL
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%8E%8B%E6%B5%8B"><span class="nav-number">1.</span> <span class="nav-text">如何压测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%8B%E6%B5%8B%E6%97%B6%E5%A6%82%E4%BD%95%E8%A7%82%E5%AF%9F%E6%9C%BA%E5%99%A8%E7%9A%84CPU%E8%B4%9F%E8%BD%BD%E6%83%85%E5%86%B5%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">压测时如何观察机器的CPU负载情况？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%8B%E6%B5%8B%E6%97%B6%E5%A6%82%E4%BD%95%E8%A7%82%E5%AF%9F%E6%9C%BA%E5%99%A8%E7%9A%84%E5%86%85%E5%AD%98%E8%B4%9F%E8%BD%BD%E6%83%85%E5%86%B5%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">压测时如何观察机器的内存负载情况？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%8B%E6%B5%8B%E6%97%B6%E5%A6%82%E4%BD%95%E8%A7%82%E5%AF%9F%E6%9C%BA%E5%99%A8%E7%9A%84%E7%A3%81%E7%9B%98IO%E6%83%85%E5%86%B5%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">压测时如何观察机器的磁盘IO情况？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%8B%E6%B5%8B%E6%97%B6%E8%A7%82%E5%AF%9F%E7%BD%91%E5%8D%A1%E7%9A%84%E6%B5%81%E9%87%8F%E6%83%85%E5%86%B5"><span class="nav-number">5.</span> <span class="nav-text">压测时观察网卡的流量情况</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Dragon"
+      src="/images/head-img.jpeg">
+  <p class="site-author-name" itemprop="name">Dragon</p>
+  <div class="site-description" itemprop="description">java</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/fl911" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;fl911" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/519625362@qq.com" title="E-Mail → 519625362@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Dragon</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'e1ed6bf0f2e2dca72283',
+      clientSecret: '9e80b6dd00be7d699e117873174e5e17d1a8aa80',
+      repo        : 'Dragon-Wong.github.io',
+      owner       : 'Dragon-Wong',
+      admin       : ['Dragon-Wong'],
+      id          : '8f27d9fd5b212e62498dfb31bdd29898',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
